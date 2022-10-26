@@ -31,7 +31,10 @@ def getFoodList(foodGrid):
     return foodList
 
 def getClosestDist(position, lst):
-    return min(abs(i[0] - position[0]) + abs(i[1] - position[1]) for i in lst)
+    if len(lst) > 0:
+        return min(abs(i[0] - position[0]) + abs(i[1] - position[1]) for i in lst)
+    else:
+        return float('inf')
 
 
 class ReflexAgent(Agent):
@@ -137,8 +140,8 @@ class MultiAgentSearchAgent(Agent):
 
 
 def maxV(gamestate, depth, selfDepth):
-        if depth>selfDepth*2:
-            return 0
+        if depth>=selfDepth*2:
+            return evalFunction(gamestate)
         if gamestate.isLose():
             return -1
         elif gamestate.isWin():
@@ -150,16 +153,36 @@ def maxV(gamestate, depth, selfDepth):
         return v
         
 def minV(gamestate, depth, selfDepth):
-        if depth>selfDepth*2:
-            return 0
+        if depth>=selfDepth*2:
+            return evalFunction(gamestate)
         if gamestate.isLose():
             return -1
         elif gamestate.isWin():
             return 1
         v = float('inf')
         for successor in gamestate.getLegalActions():
-            v = min(v, maxV(gamestate.generateSuccessor(0,successor)), depth+1, selfDepth)
+            v = min(v, maxV(gamestate.generateSuccessor(0,successor), depth+1, selfDepth))
         return v
+    
+def evalFunction(currentGameState):
+    newPos = currentGameState.getPacmanPosition()
+    newGhostStates = currentGameState.getGhostStates()
+    minFoodDist = getClosestDist(newPos, getFoodList(currentGameState.getFood())) 
+    ghostPos = []
+    for state in newGhostStates:
+         ghostPos.append(state.getPosition())
+    minGhostDist = getClosestDist(newPos, ghostPos)
+    # print(f"{minFoodDist} {minGhostDist}")
+    if minGhostDist < 4 and minGhostDist != 0:
+        ghostscore = -11 / minGhostDist
+    else:
+        ghostscore = 0
+
+    if minFoodDist == 0:
+        foodscore = 0.01
+    else:
+        foodscore = 10 / minFoodDist
+    return currentGameState.getScore() + foodscore + ghostscore
     
 class MinimaxAgent(MultiAgentSearchAgent):
     """
@@ -200,7 +223,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
         returning = float('-inf')
         bestAction = None
         for actions in gameState.getLegalActions(self.index):
-            getClosestDist(gameState.getPacmanPosition(), actions)
+            print(actions)
             maxv = maxV(gameState.generateSuccessor(0, actions), 0, self.depth)
             if maxv>returning:
                 bestAction = actions
