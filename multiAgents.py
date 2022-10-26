@@ -12,11 +12,27 @@
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
 
 
+from cmath import inf
+from operator import index
+from pacman import GameState
 from util import manhattanDistance
 from game import Directions
 import random, util
 
 from game import Agent
+
+
+def getFoodList(foodGrid):
+    foodList = []
+    for i in range(foodGrid.width):
+        for j in range(foodGrid.height):
+            if foodGrid[i][j]:
+                foodList.append((i,j))
+    return foodList
+
+def getClosestDist(position, lst):
+    return min(abs(i[0] - position[0]) + abs(i[1] - position[1]) for i in lst)
+
 
 class ReflexAgent(Agent):
     """
@@ -27,7 +43,7 @@ class ReflexAgent(Agent):
     it in any way you see fit, so long as you don't touch our method
     headers.
     """
-
+    
 
     def getAction(self, gameState):
         """
@@ -50,6 +66,8 @@ class ReflexAgent(Agent):
         "Add more of your code here if you want to"
         return legalMoves[chosenIndex]
 
+    
+
     def evaluationFunction(self, currentGameState, action):
         """
         Design a better evaluation function here.
@@ -71,10 +89,12 @@ class ReflexAgent(Agent):
         newFood = successorGameState.getFood()
         newGhostStates = successorGameState.getGhostStates()
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
+        minFoodDist = getClosestDist(newPos, getFoodList(currentGameState.getFood()))  
+        minGhostDist = getClosestDist(newPos,(state.getPosition() for state in newGhostStates))
+        print(minFoodDist + " " + minGhostDist)
 
-        "*** YOUR CODE HERE ***"
-        print(successorGameState.getCapsules())
-
+        
+        print(getClosestFood(currentGameState.getPacmanPosition(),currentGameState.getFood()))
         return successorGameState.getScore()
 
 def scoreEvaluationFunction(currentGameState):
@@ -107,11 +127,38 @@ class MultiAgentSearchAgent(Agent):
         self.evaluationFunction = util.lookup(evalFn, globals())
         self.depth = int(depth)
 
+
+def maxV(gamestate, depth, selfDepth):
+        if depth>selfDepth*2:
+            return 0
+        if gamestate.isLose():
+            return -1
+        elif gamestate.isWin():
+            return 1
+        v = float('-inf')
+        for successor in gamestate.getLegalActions():
+            v = max(v, minV(gamestate.generateSuccessor(0,successor), depth+1, selfDepth))
+        
+        return v
+        
+def minV(gamestate, depth, selfDepth):
+        if depth>selfDepth*2:
+            return 0
+        if gamestate.isLose():
+            return -1
+        elif gamestate.isWin():
+            return 1
+        v = float('inf')
+        for successor in gamestate.getLegalActions():
+            v = min(v, maxV(gamestate.generateSuccessor(0,successor)), depth+1, selfDepth)
+        return v
+    
 class MinimaxAgent(MultiAgentSearchAgent):
     """
     Your minimax agent (question 2)
     """
-
+   
+    
     def getAction(self, gameState):
         """
         Returns the minimax action from the current gameState using self.depth
@@ -136,12 +183,24 @@ class MinimaxAgent(MultiAgentSearchAgent):
         Returns whether or not the game state is a losing state
         """
         "*** YOUR CODE HERE ***"
-        
+
+
+        "Add more of your code here if you want to"
+
         if (gameState.isWin()):
-            for actions in gameState.getLegalActions(0):
-                gameState.generateSuccessor(0, action)
-            return 
-        util.raiseNotDefined()
+            return
+        returning = float('-inf')
+        bestAction = None
+        for actions in gameState.getLegalActions(self.index):
+            getClosestDist(gameState.getPacmanPosition(), actions)
+            maxv = maxV(gameState.generateSuccessor(0, actions), 0, self.depth)
+            if maxv>returning:
+                bestAction = actions
+                returning = maxv
+        
+        return bestAction
+        #util.raiseNotDefined()
+ 
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
