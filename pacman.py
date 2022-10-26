@@ -125,7 +125,6 @@ class GameState:
 
         # Resolve multi-agent effects
         GhostRules.checkDeath(state, agentIndex)
-
         # Book keeping
         state.data._agentMoved = agentIndex
         state.data.score += state.data.scoreChange
@@ -196,6 +195,7 @@ class GameState:
         if currentFood[x][y] == True: ...
         """
         return self.data.food
+
 
 
 
