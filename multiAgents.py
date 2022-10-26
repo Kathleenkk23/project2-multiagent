@@ -18,6 +18,19 @@ import random, util
 
 from game import Agent
 
+
+def getFoodList(foodGrid):
+    foodList = []
+    for i in range(foodGrid.width):
+        for j in range(foodGrid.height):
+            if foodGrid[i][j]:
+                foodList.append((i,j))
+    return foodList
+
+def getClosestDist(position, lst):
+    return min(abs(i[0] - position[0]) + abs(i[1] - position[1]) for i in lst)
+
+
 class ReflexAgent(Agent):
     """
     A reflex agent chooses an action at each choice point by examining
@@ -27,7 +40,7 @@ class ReflexAgent(Agent):
     it in any way you see fit, so long as you don't touch our method
     headers.
     """
-
+    
 
     def getAction(self, gameState):
         """
@@ -51,6 +64,8 @@ class ReflexAgent(Agent):
 
         return legalMoves[chosenIndex]
 
+    
+
     def evaluationFunction(self, currentGameState, action):
         """
         Design a better evaluation function here.
@@ -72,8 +87,12 @@ class ReflexAgent(Agent):
         newFood = successorGameState.getFood()
         newGhostStates = successorGameState.getGhostStates()
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
+        minFoodDist = getClosestDist(newPos, getFoodList(currentGameState.getFood()))  
+        minGhostDist = getClosestDist(newPos,(state.getPosition() for state in newGhostStates))
+        print(minFoodDist + " " + minGhostDist)
 
-        "*** YOUR CODE HERE ***"
+        
+        print(getClosestFood(currentGameState.getPacmanPosition(),currentGameState.getFood()))
         return successorGameState.getScore()
 
 def scoreEvaluationFunction(currentGameState):
