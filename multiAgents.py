@@ -139,50 +139,55 @@ class MultiAgentSearchAgent(Agent):
         self.depth = int(depth)
 
 
-def maxV(gamestate, depth, selfDepth):
-        if depth>=selfDepth*2:
-            return evalFunction(gamestate)
+def maxV(gamestate, depth, slf, idx):
+
+        if depth==slf.depth or len(gamestate.getLegalActions(0))==0:
+            return slf.evaluationFunction(gamestate)
         if gamestate.isLose():
             return -1
         elif gamestate.isWin():
             return 1
         v = float('-inf')
-        for successor in gamestate.getLegalActions():
-            v = max(v, minV(gamestate.generateSuccessor(0,successor), depth+1, selfDepth))
+        for successor in gamestate.getLegalActions(0):
+            v = max(v, minV(gamestate.generateSuccessor(idx,successor), depth, slf, 1))
         
-        return v
+        return v 
         
-def minV(gamestate, depth, selfDepth):
-        if depth>=selfDepth*2:
-            return evalFunction(gamestate)
+def minV(gamestate, depth, slf, idx):
+        if depth==slf.depth or len(gamestate.getLegalActions(idx))==0:
+            return slf.evaluationFunction(gamestate)
         if gamestate.isLose():
             return -1
         elif gamestate.isWin():
             return 1
         v = float('inf')
-        for successor in gamestate.getLegalActions():
-            v = min(v, maxV(gamestate.generateSuccessor(0,successor), depth+1, selfDepth))
+        for successor in gamestate.getLegalActions(idx):
+            if idx == gamestate.getNumAgents()-1:
+                v = min(v, maxV(gamestate.generateSuccessor(idx,successor), depth+1, slf, 0))
+            else:
+                v = min(v, minV(gamestate.generateSuccessor(idx,successor), depth, slf, idx+1))
+
         return v
     
-def evalFunction(currentGameState):
-    newPos = currentGameState.getPacmanPosition()
-    newGhostStates = currentGameState.getGhostStates()
-    minFoodDist = getClosestDist(newPos, getFoodList(currentGameState.getFood())) 
-    ghostPos = []
-    for state in newGhostStates:
-         ghostPos.append(state.getPosition())
-    minGhostDist = getClosestDist(newPos, ghostPos)
-    # print(f"{minFoodDist} {minGhostDist}")
-    if minGhostDist < 4 and minGhostDist != 0:
-        ghostscore = -11 / minGhostDist
-    else:
-        ghostscore = 0
+# def evalFunction(currentGameState):
+#     newPos = currentGameState.getPacmanPosition()
+#     newGhostStates = currentGameState.getGhostStates()
+#     minFoodDist = getClosestDist(newPos, getFoodList(currentGameState.getFood())) 
+#     ghostPos = []
+#     for state in newGhostStates:
+#          ghostPos.append(state.getPosition())
+#     minGhostDist = getClosestDist(newPos, ghostPos)
+#     # print(f"{minFoodDist} {minGhostDist}")
+#     if minGhostDist < 4 and minGhostDist != 0:
+#         ghostscore = -11 / minGhostDist
+#     else:
+#         ghostscore = 0
 
-    if minFoodDist == 0:
-        foodscore = 0.01
-    else:
-        foodscore = 10 / minFoodDist
-    return currentGameState.getScore() + foodscore + ghostscore
+#     if minFoodDist == 0:
+#         foodscore = 0.01
+#     else:
+#         foodscore = 10 / minFoodDist
+#     return currentGameState.getScore() + foodscore + ghostscore
     
 class MinimaxAgent(MultiAgentSearchAgent):
     """
@@ -222,9 +227,8 @@ class MinimaxAgent(MultiAgentSearchAgent):
             return
         returning = float('-inf')
         bestAction = None
-        for actions in gameState.getLegalActions(self.index):
-            print(actions)
-            maxv = maxV(gameState.generateSuccessor(0, actions), 0, self.depth)
+        for actions in gameState.getLegalActions(0):
+            maxv = minV(gameState.generateSuccessor(0, actions), 0, self, 1)
             if maxv>returning:
                 bestAction = actions
                 returning = maxv
