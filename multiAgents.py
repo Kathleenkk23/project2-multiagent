@@ -168,26 +168,44 @@ def minV(gamestate, depth, slf, idx):
                 v = min(v, minV(gamestate.generateSuccessor(idx,successor), depth, slf, idx+1))
 
         return v
-    
-# def evalFunction(currentGameState):
-#     newPos = currentGameState.getPacmanPosition()
-#     newGhostStates = currentGameState.getGhostStates()
-#     minFoodDist = getClosestDist(newPos, getFoodList(currentGameState.getFood())) 
-#     ghostPos = []
-#     for state in newGhostStates:
-#          ghostPos.append(state.getPosition())
-#     minGhostDist = getClosestDist(newPos, ghostPos)
-#     # print(f"{minFoodDist} {minGhostDist}")
-#     if minGhostDist < 4 and minGhostDist != 0:
-#         ghostscore = -11 / minGhostDist
-#     else:
-#         ghostscore = 0
 
-#     if minFoodDist == 0:
-#         foodscore = 0.01
-#     else:
-#         foodscore = 10 / minFoodDist
-#     return currentGameState.getScore() + foodscore + ghostscore
+def abmaxV(gamestate, depth, slf, idx, alpha, beta):
+
+        if depth==slf.depth or len(gamestate.getLegalActions(0))==0:
+            return slf.evaluationFunction(gamestate)
+        if gamestate.isLose():
+            return -1
+        elif gamestate.isWin():
+            return 1
+        v = float('-inf')
+        for successor in gamestate.getLegalActions(0):
+            v = max(v, abminV(gamestate.generateSuccessor(idx,successor), depth, slf, 1, alpha, beta))
+            if v > beta:
+                return v
+            alpha = max(alpha, v)
+
+        return v 
+        
+def abminV(gamestate, depth, slf, idx, alpha, beta):
+        if depth==slf.depth or len(gamestate.getLegalActions(idx))==0:
+            return slf.evaluationFunction(gamestate)
+        if gamestate.isLose():
+            return -1
+        elif gamestate.isWin():
+            return 1
+        v = float('inf')
+        for successor in gamestate.getLegalActions(idx):
+            if idx == gamestate.getNumAgents()-1:
+                v = min(v, abmaxV(gamestate.generateSuccessor(idx,successor), depth+1, slf, 0, alpha, beta))
+                if v < alpha:
+                    return v
+                beta = min(beta, v)
+            else:
+                v = min(v, abminV(gamestate.generateSuccessor(idx,successor), depth, slf, idx+1, alpha, beta))
+                if v < alpha:
+                    return v
+                beta = min(beta, v)
+        return v
     
 class MinimaxAgent(MultiAgentSearchAgent):
     """
@@ -226,7 +244,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
         if (gameState.isWin()):
             return
         returning = float('-inf')
-        bestAction = None
+        bestAction = None 
         for actions in gameState.getLegalActions(0):
             maxv = minV(gameState.generateSuccessor(0, actions), 0, self, 1)
             if maxv>returning:
@@ -247,7 +265,23 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         Returns the minimax action using self.depth and self.evaluationFunction
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        #from minmax
+        if (gameState.isWin()):
+            return
+        returning = float('-inf')
+        bestAction = None
+        alpha = float('-inf')
+        beta = float('inf')
+        for actions in gameState.getLegalActions(0):
+            maxv = abminV(gameState.generateSuccessor(0, actions), 0, self, 1, alpha, beta)
+            if maxv>returning:
+                bestAction = actions
+                returning = maxv
+        
+        return bestAction
+        
+        
+        #util.raiseNotDefined()
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
