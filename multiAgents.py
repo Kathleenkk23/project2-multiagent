@@ -207,6 +207,38 @@ def abminV(gamestate, depth, slf, idx, alpha, beta):
                 beta = min(beta, v)
         return v
     
+    
+def expmaxV(gamestate, depth, slf, idx):
+
+        if depth==slf.depth or len(gamestate.getLegalActions(0))==0:
+            return slf.evaluationFunction(gamestate)
+        if gamestate.isLose():
+            return -1
+        elif gamestate.isWin():
+            return 1
+        v = float('-inf')
+        for successor in gamestate.getLegalActions(0):
+            v = max(v, expV(gamestate.generateSuccessor(idx,successor), depth, slf, 1))
+        
+        return v 
+    
+def expV(gamestate, depth, slf, idx):
+        if depth==slf.depth or len(gamestate.getLegalActions(idx))==0:
+            return slf.evaluationFunction(gamestate)
+        if gamestate.isLose():
+            return -1
+        elif gamestate.isWin():
+            return 1
+        v = 0
+        length = len(gamestate.getLegalActions(idx))
+        for successor in gamestate.getLegalActions(idx):
+            if idx == gamestate.getNumAgents()-1:
+                v += expmaxV(gamestate.generateSuccessor(idx,successor), depth+1, slf, 0)/length
+            else:
+                v += expV(gamestate.generateSuccessor(idx,successor), depth, slf, idx+1)/length
+        return v
+    
+    
 class MinimaxAgent(MultiAgentSearchAgent):
     """
     Your minimax agent (question 2)
@@ -283,7 +315,6 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
             
         return bestAction
         
-        #util.raiseNotDefined()
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
@@ -298,7 +329,18 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         legal moves.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        if (gameState.isWin()):
+            return
+        returning = float('-inf')
+        bestAction = None 
+        for actions in gameState.getLegalActions(0):
+            maxv = expV(gameState.generateSuccessor(0, actions), 0, self, 1)
+            if maxv>returning:
+                bestAction = actions
+                returning = maxv
+        
+        return bestAction
+        # util.raiseNotDefined()
 
 def betterEvaluationFunction(currentGameState):
     """
