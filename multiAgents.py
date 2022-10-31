@@ -95,7 +95,8 @@ class ReflexAgent(Agent):
 
 
         minFoodDist = getClosestDist(newPos, getFoodList(currentGameState.getFood()))  
-        minGhostDist = getClosestDist(newPos,(state.getPosition() for state in newGhostStates))
+        lstGhost = list(state.getPosition() for state in newGhostStates)
+        minGhostDist = getClosestDist(newPos,lstGhost)
         # print(f"{minFoodDist} {minGhostDist}")
         if minGhostDist < 4 and minGhostDist != 0:
             ghostscore = -11 / minGhostDist
