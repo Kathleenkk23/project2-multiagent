@@ -277,9 +277,11 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
             if maxv>returning:
                 bestAction = actions
                 returning = maxv
-        
+            if maxv > beta:
+                return maxv
+            alpha = max(alpha, maxv)
+            
         return bestAction
-        
         
         #util.raiseNotDefined()
 
