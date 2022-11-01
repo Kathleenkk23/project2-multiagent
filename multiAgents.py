@@ -348,10 +348,34 @@ def betterEvaluationFunction(currentGameState):
     Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
     evaluation function (question 5).
 
-    DESCRIPTION: <write something here so we know what you did>
+    DESCRIPTION: I have effectively just copied my evaluation function from above and renamed some variables.
+    ghostScore is inversely related with the distance to the CLOSEST ghost. ghostScore is 0 if the ghost is at least 4 blocks away.
+
+    foodScore is inversely proportional to the distance of the closest food pellet.
+
+    The final value returned is a num of the state's getScore() function, foodScore, and ghostScore.
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    currPos = currentGameState.getPacmanPosition()
+    currFood = currentGameState.getFood()
+    currGhostStates = currentGameState.getGhostStates()
+    currScaredTimes = [ghostState.scaredTimer for ghostState in currGhostStates]
+
+
+    minFoodDist = getClosestDist(currPos, getFoodList(currentGameState.getFood()))  
+    lstGhost = list(state.getPosition() for state in currGhostStates)
+    minGhostDist = getClosestDist(currPos,lstGhost)
+    # print(f"{minFoodDist} {minGhostDist}")
+    if minGhostDist < 4 and minGhostDist != 0:
+        ghostscore = -11 / minGhostDist
+    else:
+        ghostscore = 0
+
+    if minFoodDist == 0:
+        foodscore = 0.01
+    else:
+        foodscore = 10 / minFoodDist
+    return currentGameState.getScore() + foodscore + ghostscore
 
 # Abbreviation
 better = betterEvaluationFunction
