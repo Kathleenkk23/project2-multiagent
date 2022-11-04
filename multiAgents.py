@@ -367,15 +367,18 @@ def betterEvaluationFunction(currentGameState):
     minGhostDist = getClosestDist(currPos,lstGhost)
     # print(f"{minFoodDist} {minGhostDist}")
     if minGhostDist < 4 and minGhostDist != 0:
-        ghostscore = -11 / minGhostDist
+        ghostscore = -10 / minGhostDist
     else:
         ghostscore = 0
 
     if minFoodDist == 0:
-        foodscore = 0.01
+        foodscore = 0
     else:
-        foodscore = 10 / minFoodDist
-    return currentGameState.getScore() + foodscore + ghostscore
+        foodscore = 9 / minFoodDist
+    if len(currFood.asList()) == 0:
+        foodscore = 0
+
+    return currentGameState.getScore() + foodscore + ghostscore + sum(currScaredTimes)
 
 # Abbreviation
 better = betterEvaluationFunction
